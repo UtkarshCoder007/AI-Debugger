@@ -1,0 +1,220 @@
+{
+  "summary": {
+    "label": "v1-baseline",
+    "fixture": "shop_v1",
+    "model": "openai/gpt-oss-120b",
+    "runs": 5,
+    "errored_runs": 0,
+    "mean_bugs_found": 2.4,
+    "mean_false_positives": 0,
+    "mean_tokens": 5794,
+    "mean_steps": 5.6,
+    "pct_all_files_read": 0,
+    "pct_tests_run": 20,
+    "per_bug_detection": {
+      "remove-stock-boundary": 5,
+      "bulk-tier-order": 5,
+      "order-not-atomic": 2,
+      "paginate-off-by-one": 0,
+      "average-empty-list": 0
+    }
+  },
+  "runs": [
+    {
+      "run_id": "20261117-123305-76d3",
+      "status": "submitted",
+      "steps": 6,
+      "tokens": 6002,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock raises OutOfStockError when stock equals requested qty; condition should be '<' not '<=' to allow exact removal."
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 4,
+          "description": "bulk_discount_rate checks qty > 10 before qty > 50, causing 20% discount never applied; reorder conditions to check >50 first."
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/pricing.py"
+      ],
+      "tests_run": 1,
+      "found": [
+        "bulk-tier-order",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "average-empty-list",
+        "order-not-atomic",
+        "paginate-off-by-one"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "all_files_read": false,
+      "tests_run_flag": true
+    },
+    {
+      "run_id": "20261117-123324-5177",
+      "status": "submitted",
+      "steps": 5,
+      "tokens": 4662,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock incorrectly raises OutOfStockError when removing exactly available quantity; condition should be < qty not <= qty"
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 2,
+          "description": "bulk_discount_rate logic order is wrong; higher quantity discount never reached because qty>10 matches first; need check >50 before >10"
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py"
+      ],
+      "tests_run": 0,
+      "found": [
+        "bulk-tier-order",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "average-empty-list",
+        "order-not-atomic",
+        "paginate-off-by-one"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "all_files_read": false,
+      "tests_run_flag": false
+    },
+    {
+      "run_id": "20261117-123342-37d8",
+      "status": "submitted",
+      "steps": 5,
+      "tokens": 4691,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock raises OutOfStockError when qty equals available stock; should allow removal down to zero"
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 4,
+          "description": "bulk_discount_rate checks qty>10 before qty>50, causing 20% discount never applied; reorder conditions"
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py"
+      ],
+      "tests_run": 0,
+      "found": [
+        "bulk-tier-order",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "average-empty-list",
+        "order-not-atomic",
+        "paginate-off-by-one"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "all_files_read": false,
+      "tests_run_flag": false
+    },
+    {
+      "run_id": "20261117-123401-5308",
+      "status": "submitted",
+      "steps": 6,
+      "tokens": 6818,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock raises OutOfStockError when stock is exactly equal to qty; should only raise when qty exceeds available stock."
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 2,
+          "description": "bulk_discount_rate checks qty > 10 before qty > 50, causing 20% discount never applied; reorder conditions."
+        },
+        {
+          "file": "shop/orders.py",
+          "line": 8,
+          "description": "place_order removes stock item-by-item, so partial stock is deducted before an OutOfStockError aborts the whole order; needs atomicity."
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "tests/test_shop.py"
+      ],
+      "tests_run": 0,
+      "found": [
+        "bulk-tier-order",
+        "order-not-atomic",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "average-empty-list",
+        "paginate-off-by-one"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "all_files_read": false,
+      "tests_run_flag": false
+    },
+    {
+      "run_id": "20261117-123430-3ef6",
+      "status": "submitted",
+      "steps": 6,
+      "tokens": 6796,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock raises OutOfStockError when qty equals available stock; should only raise when requested qty exceeds available"
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 2,
+          "description": "bulk_discount_rate checks qty > 10 before qty > 50, causing 20% discount never applied; order of conditions should check >50 first"
+        },
+        {
+          "file": "shop/orders.py",
+          "line": 8,
+          "description": "place_order removes stock item-by-item; if later item fails, earlier removals are not rolled back, violating all-or-nothing guarantee"
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "tests/test_shop.py"
+      ],
+      "tests_run": 0,
+      "found": [
+        "bulk-tier-order",
+        "order-not-atomic",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "average-empty-list",
+        "paginate-off-by-one"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "all_files_read": false,
+      "tests_run_flag": false
+    }
+  ]
+}

@@ -1,0 +1,269 @@
+{
+  "summary": {
+    "label": "v2-coverage-gate",
+    "fixture": "shop_v1",
+    "model": "openai/gpt-oss-120b",
+    "rules": {
+      "require_full_coverage": true
+    },
+    "runs": 5,
+    "errored_runs": 0,
+    "mean_bugs_found": 3.8,
+    "mean_false_positives": 0,
+    "mean_tokens": 13155,
+    "mean_steps": 10,
+    "pct_all_files_read": 100,
+    "pct_tests_run": 40,
+    "mean_gate_rejections": 1,
+    "per_bug_detection": {
+      "remove-stock-boundary": 5,
+      "bulk-tier-order": 5,
+      "order-not-atomic": 0,
+      "paginate-off-by-one": 5,
+      "average-empty-list": 4
+    }
+  },
+  "runs": [
+    {
+      "run_id": "20261117-171820-5f27",
+      "status": "submitted",
+      "steps": 11,
+      "tokens": 12375,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock raises OutOfStockError even when stock equals requested removal; should only raise when requested qty exceeds available stock"
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 4,
+          "description": "bulk_discount_rate checks qty > 10 before qty > 50, making the 20% discount unreachable; larger thresholds must be checked first"
+        },
+        {
+          "file": "shop/report.py",
+          "line": 3,
+          "description": "paginate uses start = page * page_size, causing off\u2011by\u2011one error; pages are 1\u2011based so start should be (page\u20111) * page_size"
+        },
+        {
+          "file": "shop/report.py",
+          "line": 7,
+          "description": "average_order_value does not handle empty totals list and will raise ZeroDivisionError; should return 0 or handle empty input gracefully"
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py"
+      ],
+      "tests_run": 1,
+      "gate_rejections": 1,
+      "found": [
+        "average-empty-list",
+        "bulk-tier-order",
+        "paginate-off-by-one",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "order-not-atomic"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "all_files_read": true,
+      "tests_run_flag": true
+    },
+    {
+      "run_id": "20261117-171930-dc7d",
+      "status": "submitted",
+      "steps": 10,
+      "tokens": 15423,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock raises OutOfStockError when qty equals stock due to <= check; should allow exact removal by using <"
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 2,
+          "description": "bulk_discount_rate checks qty > 10 before qty > 50, making 20% discount unreachable; reorder conditions to check > 50 first"
+        },
+        {
+          "file": "shop/report.py",
+          "line": 3,
+          "description": "paginate computes start index incorrectly; should be (page-1) * page_size for 1-based pages"
+        },
+        {
+          "file": "shop/report.py",
+          "line": 7,
+          "description": "average_order_value divides by len(totals) without handling empty list, causing ZeroDivisionError"
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py",
+        "tests/test_shop.py"
+      ],
+      "tests_run": 0,
+      "gate_rejections": 1,
+      "found": [
+        "average-empty-list",
+        "bulk-tier-order",
+        "paginate-off-by-one",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "order-not-atomic"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "all_files_read": true,
+      "tests_run_flag": false
+    },
+    {
+      "run_id": "20261117-172031-042f",
+      "status": "submitted",
+      "steps": 9,
+      "tokens": 10964,
+      "findings": [
+        {
+          "file": "shop/pricing.py",
+          "line": 4,
+          "description": "bulk_discount_rate checks qty>10 before qty>50, making the 20% discount unreachable"
+        },
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock raises OutOfStockError even when removing exactly the available quantity; condition should be < qty"
+        },
+        {
+          "file": "shop/report.py",
+          "line": 3,
+          "description": "paginate start index miscomputed for 1-based pages; should subtract 1"
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py"
+      ],
+      "tests_run": 0,
+      "gate_rejections": 1,
+      "found": [
+        "bulk-tier-order",
+        "paginate-off-by-one",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "average-empty-list",
+        "order-not-atomic"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "all_files_read": true,
+      "tests_run_flag": false
+    },
+    {
+      "run_id": "20261117-172125-7c8e",
+      "status": "submitted",
+      "steps": 12,
+      "tokens": 17006,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock raises OutOfStockError when qty equals current stock, preventing exact removal; condition should be < qty"
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 2,
+          "description": "bulk_discount_rate checks >10 before >50, making 20% discount unreachable; reorder checks to >50 first"
+        },
+        {
+          "file": "shop/report.py",
+          "line": 3,
+          "description": "paginate calculates start index incorrectly; should use (page-1)*page_size for 1-based pages"
+        },
+        {
+          "file": "shop/report.py",
+          "line": 7,
+          "description": "average_order_value does not handle empty list and will raise ZeroDivisionError"
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py"
+      ],
+      "tests_run": 1,
+      "gate_rejections": 1,
+      "found": [
+        "average-empty-list",
+        "bulk-tier-order",
+        "paginate-off-by-one",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "order-not-atomic"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "all_files_read": true,
+      "tests_run_flag": true
+    },
+    {
+      "run_id": "20261117-172252-e4ba",
+      "status": "submitted",
+      "steps": 8,
+      "tokens": 10009,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock raises OutOfStockError even when removing exactly the available quantity; condition should be qty > available, not <=."
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 2,
+          "description": "bulk_discount_rate checks qty > 10 before qty > 50, making the 10% discount apply to quantities >50; the order of conditions should be reversed (check >50 first)."
+        },
+        {
+          "file": "shop/report.py",
+          "line": 3,
+          "description": "paginate calculates start index as page * page_size, but pages are 1-based; should be (page - 1) * page_size to return correct slice."
+        },
+        {
+          "file": "shop/report.py",
+          "line": 7,
+          "description": "average_order_value divides by len(totals) without handling empty list, causing ZeroDivisionError; should return 0 or handle empty case."
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py"
+      ],
+      "tests_run": 0,
+      "gate_rejections": 1,
+      "found": [
+        "average-empty-list",
+        "bulk-tier-order",
+        "paginate-off-by-one",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "order-not-atomic"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "all_files_read": true,
+      "tests_run_flag": false
+    }
+  ]
+}
