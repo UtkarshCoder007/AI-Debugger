@@ -20,7 +20,6 @@ def list_files(ctx):
 def read_file(ctx, path, start_line=1, end_line=None):
     p = safe_path(ctx.root, path)
     lines = p.read_text(encoding="utf-8").splitlines()
-    
     start = max(1, int(start_line))
     if start > len(lines):
         return f"error: file has only {len(lines)} lines"
@@ -31,45 +30,17 @@ def read_file(ctx, path, start_line=1, end_line=None):
     return f"{body}\n[showing lines {start}-{end} of {len(lines)}]"
 
 
-def search(ctx, pattern):
-    regex = re.compile(pattern)
-    hits = []
-    for p in iter_py_files(ctx.root):
-        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
-            if regex.search(line):
-                hits.append(f"{relative(ctx.root, p)}:{i}: {line.strip()}")
-    return "\n".join(hits[:30]) or "no matches"
-
-
-LIST_FILES = Tool(
-    name="list_files",
-    description="List the project's Python files with line counts and the functions/classes each defines.",
-    parameters={"type": "object", "properties": {}},
-    func=list_files,
-)
-
 READ_FILE = Tool(
     name="read_file",
-    description=f"Read a slice of a file with line numbers. Returns at most {MAX_READ_LINES} lines.",
+    description=f"Read a file with line numbers (max {MAX_READ_LINES} lines per call).",
     parameters={
         "type": "object",
         "properties": {
-            "path": {"type": "string", "description": "Path relative to the project, e.g. shop/inventory.py"},
+            "path": {"type": "string", "description": "e.g. shop/inventory.py"},
             "start_line": {"type": "integer"},
             "end_line": {"type": "integer"},
         },
         "required": ["path"],
     },
     func=read_file,
-)
-
-SEARCH = Tool(
-    name="search",
-    description="Regex search across all project files. Returns matching lines as path:line: text.",
-    parameters={
-        "type": "object",
-        "properties": {"pattern": {"type": "string"}},
-        "required": ["pattern"],
-    },
-    func=search,
 )

@@ -15,7 +15,7 @@ def run_tests(ctx):
 
 RUN_TESTS = Tool(
     name="run_tests",
-    description="Run the project's test suite and return the output.",
+    description="Run the test suite and return its output.",
     parameters={"type": "object", "properties": {}},
     func=run_tests,
 )

@@ -2,7 +2,10 @@ from .. import gates
 from ..sandbox import relative, safe_path
 from .base import Tool
 
+
 def submit_findings(ctx, findings):
+    """Validate the final answer. Nothing malformed is ever accepted: the model gets a
+    specific error and must try again, so every finished run has a gradable result."""
     problem = gates.coverage_problem(ctx)
     if problem:
         ctx.gate_rejections += 1
@@ -18,7 +21,7 @@ def submit_findings(ctx, findings):
             return f"error: finding {i}: 'file' must be a non-empty string"
         path = safe_path(ctx.root, file)
         if not path.is_file():
-            return f"error: finding {i}: file '{file}' does not exist. Use list_files for valid paths."
+            return f"error: finding {i}: file '{file}' does not exist. Valid paths are in the first message."
         if not isinstance(line, int) or isinstance(line, bool) or line < 1:
             return f"error: finding {i}: 'line' must be a positive integer"
         n_lines = len(path.read_text(encoding="utf-8").splitlines())
@@ -33,10 +36,7 @@ def submit_findings(ctx, findings):
 
 SUBMIT_FINDINGS = Tool(
     name="submit_findings",
-    description=(
-        "Submit your final list of bugs. Call this exactly once, when you are done. "
-        "Each finding needs the file, one line number inside the buggy code, and a short description."
-    ),
+    description="Submit the final bug list. Call exactly once, when done.",
     parameters={
         "type": "object",
         "properties": {

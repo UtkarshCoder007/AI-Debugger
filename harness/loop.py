@@ -6,6 +6,7 @@ from . import config, tools
 from .llm import call_model
 from .prompts import NUDGE_BAD_CALL, NUDGE_NO_TOOL, SYSTEM_PROMPT, TASK
 from .runlog import RunLog
+from .tools.files import list_files
 from .workspace import create_run
 
 
@@ -16,9 +17,11 @@ def run_agent(fixture="shop_v1", verbose=True):
     log.event("run_start", model=config.MODEL, fixture=fixture)
     say = print if verbose else (lambda *a, **k: None)
 
+    # the file map goes into the first message, so the agent does not spend a call on list_files
+    task_message = f"{TASK}\n\nProject files:\n{list_files(ctx)}"
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": TASK},
+        {"role": "user", "content": task_message},
     ]
     schemas = tools.schemas()
     tokens = steps = 0
