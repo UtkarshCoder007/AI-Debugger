@@ -23,7 +23,7 @@ def main():
     n_bugs = len(key["bugs"])
 
     rows = []
-    print(f"{'run':<4}{'status':<12}{'recall':<9}{'fp':<4}{'tokens':<8}{'steps':<7}{'all files':<11}{'tests':<7}{'gate':<6}notes")
+    print(f"{'run':<4}{'status':<12}{'recall':<9}{'fp':<4}{'tokens':<8}{'steps':<7}{'all files':<11}{'tests':<7}gate")
     for i in range(1, args.runs + 1):
         result = run_agent(args.fixture, verbose=False)
         g = grade(result["findings"], key)
@@ -35,7 +35,7 @@ def main():
         rows.append(row)
         print(f"{i:<4}{row['status']:<12}{len(g['found'])}/{n_bugs:<7}{g['false_positives']:<4}"
               f"{row['tokens']:<8}{row['steps']:<7}{'yes' if row['all_files_read'] else 'no':<11}"
-              f"{'yes' if row['tests_run_flag'] else 'no':<7}{row['gate_rejections']:<6}{len(row['notes'])}")
+              f"{'yes' if row['tests_run_flag'] else 'no':<7}{row['gate_rejections']}")
         if i < args.runs:
             time.sleep(args.pause)
 
@@ -48,12 +48,7 @@ def main():
         "label": label,
         "fixture": args.fixture,
         "model": config.MODEL,
-        "rules": {
-            "require_full_coverage": config.REQUIRE_FULL_COVERAGE,
-            "use_notes": config.USE_NOTES,
-            "prune_old_tool_results": config.PRUNE_OLD_TOOL_RESULTS,
-            "keep_recent_results": config.KEEP_RECENT_RESULTS,
-        },
+        "rules": {"require_full_coverage": config.REQUIRE_FULL_COVERAGE},
         "runs": len(rows),
         "errored_runs": len(rows) - len(ok),
         "mean_bugs_found": round(mean(len(r["found"]) for r in ok), 2),
@@ -63,7 +58,6 @@ def main():
         "pct_all_files_read": round(100 * mean(r["all_files_read"] for r in ok)),
         "pct_tests_run": round(100 * mean(r["tests_run_flag"] for r in ok)),
         "mean_gate_rejections": round(mean(r["gate_rejections"] for r in ok), 2),
-        "mean_notes": round(mean(len(r["notes"]) for r in ok), 1),
         "per_bug_detection": {
             b["id"]: sum(b["id"] in r["found"] for r in ok) for b in key["bugs"]
         },
@@ -74,8 +68,7 @@ def main():
     print(f"mean false positives: {summary['mean_false_positives']}")
     print(f"mean tokens / steps:  {summary['mean_tokens']} / {summary['mean_steps']}")
     print(f"read every source file: {summary['pct_all_files_read']}% of runs | ran tests: {summary['pct_tests_run']}% of runs")
-    print(f"gate rejections per run: {summary['mean_gate_rejections']} | notes per run: {summary['mean_notes']}")
-    print(f"rules: {summary['rules']}")
+    print(f"gate rejections per run: {summary['mean_gate_rejections']} | rules: {summary['rules']}")
     print("detection per bug:")
     for bug_id, count in summary["per_bug_detection"].items():
         print(f"  {bug_id:<24}{count}/{len(ok)}")

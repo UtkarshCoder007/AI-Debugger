@@ -4,8 +4,7 @@ import openai
 
 from . import config, tools
 from .llm import call_model
-from .prompts import NUDGE_BAD_CALL, NUDGE_NO_TOOL, TASK, system_prompt
-from .pruning import prune_history
+from .prompts import NUDGE_BAD_CALL, NUDGE_NO_TOOL, SYSTEM_PROMPT, TASK
 from .runlog import RunLog
 from .workspace import create_run
 
@@ -18,7 +17,7 @@ def run_agent(fixture="shop_v1", verbose=True):
     say = print if verbose else (lambda *a, **k: None)
 
     messages = [
-        {"role": "system", "content": system_prompt()},
+        {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": TASK},
     ]
     schemas = tools.schemas()
@@ -28,13 +27,8 @@ def run_agent(fixture="shop_v1", verbose=True):
     try:
         for step in range(1, config.MAX_STEPS + 1):
             steps = step
-            # the model sees a pruned copy; `messages` itself stays complete
-            if config.PRUNE_OLD_TOOL_RESULTS:
-                view, pruned = prune_history(messages, config.KEEP_RECENT_RESULTS, config.USE_NOTES)
-            else:
-                view, pruned = messages, 0
             try:
-                resp = call_model(view, schemas)
+                resp = call_model(messages, schemas)
             except openai.BadRequestError as e:
                 # the model produced a tool call the API refused: tell it and let it retry
                 log.event("bad_request", step=step, message=str(e)[:500])
@@ -46,8 +40,7 @@ def run_agent(fixture="shop_v1", verbose=True):
             usage = resp.usage
             tokens += usage.total_tokens
             log.event("model_call", step=step, prompt_tokens=usage.prompt_tokens,
-                      completion_tokens=usage.completion_tokens, total_tokens=usage.total_tokens,
-                      pruned_results=pruned)
+                      completion_tokens=usage.completion_tokens, total_tokens=usage.total_tokens)
             say(f"\n[step {step}] this call: {usage.total_tokens} tokens | run total: {tokens}")
 
             if not msg.tool_calls:
@@ -94,7 +87,6 @@ def run_agent(fixture="shop_v1", verbose=True):
         "files_read": sorted(ctx.files_read),
         "tests_run": ctx.tests_run,
         "gate_rejections": ctx.gate_rejections,
-        "notes": ctx.notes,
     }
     (run_dir / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     log.event("run_end", **{k: v for k, v in result.items() if k != "findings"})

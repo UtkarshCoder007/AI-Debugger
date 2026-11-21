@@ -12,5 +12,4 @@ class RunContext:
     findings: list | None = None            # set once submit_findings succeeds
     files_read: set = field(default_factory=set)
     tests_run: int = 0
-    notes: list = field(default_factory=list)  # the agent's own memory; never pruned
     gate_rejections: int = 0  # how often a harness gate refused the agent's attempt to finish
