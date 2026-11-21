@@ -14,7 +14,7 @@ RESULTS_DIR = ROOT / "results"    # scorer output, one file per labelled experim
 API_KEY = os.environ["GROQ_API_KEY"]
 BASE_URL = "https://api.groq.com/openai/v1"
 MODEL = os.environ.get("MODEL", "openai/gpt-oss-120b")
-REASONING_EFFORT = "low"
+REASONING_EFFORT = os.environ.get("REASONING_EFFORT", "low")  # low | medium | high
 
 # Harness rules. Each is a switch so any experiment can be reproduced or compared.
 REQUIRE_FULL_COVERAGE = True  # submit_findings is refused until every source file was read
@@ -25,6 +25,10 @@ TOKEN_BUDGET = int(os.environ.get("TOKEN_BUDGET", "25000"))
 BUDGET_WARN_FRACTION = 0.8
 
 MAX_STEPS = 20
+# If all source files together are under this many characters, the first message includes
+# them in full (counted as read), so the agent skips the reading calls. Larger projects get
+# a file list and must use read_file. Editable in .env.
+PRELOAD_MAX_CHARS = int(os.environ.get("PRELOAD_MAX_CHARS", "12000"))
 MAX_READ_LINES = 150
 MAX_OUTPUT_CHARS = 3000
 

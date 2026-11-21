@@ -1,0 +1,223 @@
+{
+  "summary": {
+    "label": "v6-preload",
+    "fixture": "shop_v1",
+    "model": "openai/gpt-oss-120b",
+    "rules": {
+      "require_full_coverage": true,
+      "token_budget": 25000
+    },
+    "runs": 3,
+    "errored_runs": 0,
+    "statuses": {
+      "submitted": 3
+    },
+    "mean_bugs_found": 2,
+    "mean_bugs_fixed": 2,
+    "runs_fully_fixed": 0,
+    "total_regressions": 0,
+    "tampered_runs": 0,
+    "mean_false_positives": 0,
+    "mean_tokens": 8369,
+    "mean_steps": 5,
+    "mean_edits": 2,
+    "pct_all_files_read": 100,
+    "mean_gate_rejections": 0,
+    "per_bug_found": {
+      "remove-stock-boundary": 3,
+      "bulk-tier-order": 3,
+      "order-not-atomic": 0,
+      "paginate-off-by-one": 0,
+      "average-empty-list": 0
+    },
+    "per_bug_fixed": {
+      "remove-stock-boundary": 3,
+      "bulk-tier-order": 3,
+      "order-not-atomic": 0,
+      "paginate-off-by-one": 0,
+      "average-empty-list": 0
+    }
+  },
+  "runs": [
+    {
+      "run_id": "20261121-230922-0c46",
+      "status": "submitted",
+      "budget_message": null,
+      "token_budget": 25000,
+      "steps": 5,
+      "tokens": 8387,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "Incorrect stock check used '<=' causing OutOfStockError when removing exact quantity; changed to '<' to allow exact removal."
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 4,
+          "description": "Bulk discount thresholds were ordered incorrectly; qty>10 was checked before qty>50, so 50+ items got only 10% discount. Reordered conditions to apply 20% for qty>50."
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py"
+      ],
+      "tests_run": 1,
+      "gate_rejections": 0,
+      "edits_made": 2,
+      "changed_files": [
+        "shop/inventory.py",
+        "shop/pricing.py"
+      ],
+      "fix": {
+        "bugs_fixed": [
+          "bulk-tier-order",
+          "remove-stock-boundary"
+        ],
+        "bugs_not_fixed": [
+          "average-empty-list",
+          "order-not-atomic",
+          "paginate-off-by-one"
+        ],
+        "regressions": [],
+        "suite_ran": true,
+        "tampered": false
+      },
+      "found": [
+        "bulk-tier-order",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "average-empty-list",
+        "order-not-atomic",
+        "paginate-off-by-one"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "fixed_count": 2,
+      "all_files_read": true
+    },
+    {
+      "run_id": "20261121-231041-a7c7",
+      "status": "submitted",
+      "budget_message": null,
+      "token_budget": 25000,
+      "steps": 5,
+      "tokens": 8297,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock incorrectly raised OutOfStockError when quantity equal to stock; changed condition to < qty"
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 4,
+          "description": "bulk_discount_rate logic order wrong, giving 10% for >10 even when >50; reordered conditions to check >50 first"
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py"
+      ],
+      "tests_run": 1,
+      "gate_rejections": 0,
+      "edits_made": 2,
+      "changed_files": [
+        "shop/inventory.py",
+        "shop/pricing.py"
+      ],
+      "fix": {
+        "bugs_fixed": [
+          "bulk-tier-order",
+          "remove-stock-boundary"
+        ],
+        "bugs_not_fixed": [
+          "average-empty-list",
+          "order-not-atomic",
+          "paginate-off-by-one"
+        ],
+        "regressions": [],
+        "suite_ran": true,
+        "tampered": false
+      },
+      "found": [
+        "bulk-tier-order",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "average-empty-list",
+        "order-not-atomic",
+        "paginate-off-by-one"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "fixed_count": 2,
+      "all_files_read": true
+    },
+    {
+      "run_id": "20261121-231147-0f64",
+      "status": "submitted",
+      "budget_message": null,
+      "token_budget": 25000,
+      "steps": 5,
+      "tokens": 8424,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock incorrectly raised OutOfStockError when qty equal to stock; changed condition to < instead of <=."
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 2,
+          "description": "bulk_discount_rate logic order was wrong, giving 10% for >10 even when >50; reordered conditions to check >50 first."
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py"
+      ],
+      "tests_run": 1,
+      "gate_rejections": 0,
+      "edits_made": 2,
+      "changed_files": [
+        "shop/inventory.py",
+        "shop/pricing.py"
+      ],
+      "fix": {
+        "bugs_fixed": [
+          "bulk-tier-order",
+          "remove-stock-boundary"
+        ],
+        "bugs_not_fixed": [
+          "average-empty-list",
+          "order-not-atomic",
+          "paginate-off-by-one"
+        ],
+        "regressions": [],
+        "suite_ran": true,
+        "tampered": false
+      },
+      "found": [
+        "bulk-tier-order",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "average-empty-list",
+        "order-not-atomic",
+        "paginate-off-by-one"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "fixed_count": 2,
+      "all_files_read": true
+    }
+  ]
+}

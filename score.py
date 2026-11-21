@@ -65,7 +65,7 @@ def main():
         "label": label,
         "fixture": args.fixture,
         "model": config.MODEL,
-        "rules": {"require_full_coverage": config.REQUIRE_FULL_COVERAGE, "token_budget": config.TOKEN_BUDGET},
+        "rules": {"require_full_coverage": config.REQUIRE_FULL_COVERAGE, "token_budget": config.TOKEN_BUDGET, "reasoning_effort": config.REASONING_EFFORT},
         "runs": len(rows),
         "errored_runs": len(rows) - len(ok),
         "statuses": dict(Counter(r["status"] for r in ok)),

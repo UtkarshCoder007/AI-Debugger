@@ -1,0 +1,196 @@
+{
+  "summary": {
+    "label": "v7-medium-effort",
+    "fixture": "shop_v1",
+    "model": "openai/gpt-oss-120b",
+    "rules": {
+      "require_full_coverage": true,
+      "token_budget": 25000,
+      "reasoning_effort": "medium"
+    },
+    "runs": 2,
+    "errored_runs": 0,
+    "statuses": {
+      "submitted": 2
+    },
+    "mean_bugs_found": 5,
+    "mean_bugs_fixed": 4.5,
+    "runs_fully_fixed": 1,
+    "total_regressions": 0,
+    "tampered_runs": 0,
+    "mean_false_positives": 0,
+    "mean_tokens": 25634,
+    "mean_steps": 10.5,
+    "mean_edits": 5.5,
+    "pct_all_files_read": 100,
+    "mean_gate_rejections": 0,
+    "per_bug_found": {
+      "remove-stock-boundary": 2,
+      "bulk-tier-order": 2,
+      "order-not-atomic": 2,
+      "paginate-off-by-one": 2,
+      "average-empty-list": 2
+    },
+    "per_bug_fixed": {
+      "remove-stock-boundary": 2,
+      "bulk-tier-order": 2,
+      "order-not-atomic": 1,
+      "paginate-off-by-one": 2,
+      "average-empty-list": 2
+    }
+  },
+  "runs": [
+    {
+      "run_id": "20261121-232102-e35c",
+      "status": "submitted",
+      "budget_message": null,
+      "token_budget": 25000,
+      "steps": 11,
+      "tokens": 23943,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock raised OutOfStockError when removing exact quantity, preventing stock from reaching zero."
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 2,
+          "description": "bulk_discount_rate applied lower discount before higher one; logic order wrong, causing 10% discount for >50 qty instead of 20%."
+        },
+        {
+          "file": "shop/report.py",
+          "line": 3,
+          "description": "paginate used start = page * page_size, causing off\u2011by\u2011one page offset for 1\u2011based pages."
+        },
+        {
+          "file": "shop/orders.py",
+          "line": 5,
+          "description": "place_order was not atomic; it deducted stock before verifying all items and did not expose OutOfStockError import."
+        },
+        {
+          "file": "shop/report.py",
+          "line": 7,
+          "description": "average_order_value divided by len(totals) without handling empty list, raising ZeroDivisionError."
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py"
+      ],
+      "tests_run": 1,
+      "gate_rejections": 0,
+      "edits_made": 6,
+      "changed_files": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py"
+      ],
+      "fix": {
+        "bugs_fixed": [
+          "average-empty-list",
+          "bulk-tier-order",
+          "order-not-atomic",
+          "paginate-off-by-one",
+          "remove-stock-boundary"
+        ],
+        "bugs_not_fixed": [],
+        "regressions": [],
+        "suite_ran": true,
+        "tampered": false
+      },
+      "found": [
+        "average-empty-list",
+        "bulk-tier-order",
+        "order-not-atomic",
+        "paginate-off-by-one",
+        "remove-stock-boundary"
+      ],
+      "missed": [],
+      "false_positives": 0,
+      "duplicates": 0,
+      "fixed_count": 5,
+      "all_files_read": true
+    },
+    {
+      "run_id": "20261121-232402-dd7a",
+      "status": "submitted",
+      "budget_message": null,
+      "token_budget": 25000,
+      "steps": 10,
+      "tokens": 27324,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock incorrectly raised OutOfStockError when quantity exactly matched stock (used <= instead of <), preventing removal of exact amount."
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 2,
+          "description": "bulk_discount_rate applied 10% discount for qty>10 before checking qty>50, making 20% discount unreachable; condition order wrong."
+        },
+        {
+          "file": "shop/report.py",
+          "line": 3,
+          "description": "paginate used start = page * page_size, which is off for 1-based pages; should be (page-1)*page_size and validate page >=1."
+        },
+        {
+          "file": "shop/report.py",
+          "line": 7,
+          "description": "average_order_value divided by len(totals) without handling empty list, causing ZeroDivisionError."
+        },
+        {
+          "file": "shop/orders.py",
+          "line": 4,
+          "description": "place_order lacked atomic transaction and did not import OutOfStockError; stock could be partially deducted on failure."
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py",
+        "tests/test_shop.py"
+      ],
+      "tests_run": 1,
+      "gate_rejections": 0,
+      "edits_made": 5,
+      "changed_files": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py"
+      ],
+      "fix": {
+        "bugs_fixed": [
+          "average-empty-list",
+          "bulk-tier-order",
+          "paginate-off-by-one",
+          "remove-stock-boundary"
+        ],
+        "bugs_not_fixed": [
+          "order-not-atomic"
+        ],
+        "regressions": [],
+        "suite_ran": true,
+        "tampered": false
+      },
+      "found": [
+        "average-empty-list",
+        "bulk-tier-order",
+        "order-not-atomic",
+        "paginate-off-by-one",
+        "remove-stock-boundary"
+      ],
+      "missed": [],
+      "false_positives": 0,
+      "duplicates": 0,
+      "fixed_count": 4,
+      "all_files_read": true
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import re
 
-from ..config import MAX_READ_LINES
-from ..sandbox import iter_py_files, relative, safe_path
+from ..config import MAX_READ_LINES, PRELOAD_MAX_CHARS
+from ..sandbox import iter_py_files, relative, safe_path, source_files
 from .base import Tool
 
 
@@ -15,6 +15,21 @@ def list_files(ctx):
             f"defines: {', '.join(names) or '-'}"
         )
     return "\n".join(out)
+
+
+def preload_sources(ctx):
+    """Full text of every source file with line numbers, or None if the project is too big.
+    Files included this way count as read: the agent has seen every line of them."""
+    texts = {rel: (ctx.root / rel).read_text(encoding="utf-8") for rel in source_files(ctx.root)}
+    if sum(len(t) for t in texts.values()) > PRELOAD_MAX_CHARS:
+        return None
+    parts = []
+    for rel, text in texts.items():
+        lines = text.splitlines()
+        body = "\n".join(f"{i}: {line}" for i, line in enumerate(lines, 1))
+        parts.append(f"=== {rel} ({len(lines)} lines) ===\n{body}")
+        ctx.files_read.add(rel)
+    return "\n\n".join(parts)
 
 
 def read_file(ctx, path, start_line=1, end_line=None):
