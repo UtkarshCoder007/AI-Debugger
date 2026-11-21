@@ -10,30 +10,35 @@
       "id": "remove-stock-boundary",
       "file": "shop/inventory.py",
       "lines": [23, 26],
+      "hidden_tests": "TestRemoveStock",
       "description": "remove_stock uses <= so removing the exact remaining stock raises OutOfStockError"
     },
     {
       "id": "bulk-tier-order",
       "file": "shop/pricing.py",
       "lines": [1, 6],
+      "hidden_tests": "TestBulkDiscount",
       "description": "qty > 10 is checked before qty > 50, so the 20% tier is unreachable"
     },
     {
       "id": "order-not-atomic",
       "file": "shop/orders.py",
       "lines": [4, 11],
+      "hidden_tests": "TestAtomicOrder",
       "description": "stock is removed item by item, so a failure on a later item leaves earlier stock deducted"
     },
     {
       "id": "paginate-off-by-one",
       "file": "shop/report.py",
       "lines": [1, 4],
+      "hidden_tests": "TestPagination",
       "description": "pages are 1-based but start = page * page_size skips the first page"
     },
     {
       "id": "average-empty-list",
       "file": "shop/report.py",
       "lines": [7, 8],
+      "hidden_tests": "TestAverageOrderValue",
       "description": "average_order_value divides by len(totals) and crashes on an empty list"
     }
   ]

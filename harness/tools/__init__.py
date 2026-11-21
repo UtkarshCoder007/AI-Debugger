@@ -1,10 +1,12 @@
 """Tool registry. To add a tool: define it in a module, then list it here."""
 from ..config import MAX_OUTPUT_CHARS
+from .edit import REPLACE_IN_FILE
 from .files import READ_FILE
 from .findings import SUBMIT_FINDINGS
 from .verify import RUN_TESTS
 
-TOOLS = {t.name: t for t in (READ_FILE, RUN_TESTS, SUBMIT_FINDINGS)}
+TOOLS = {t.name: t for t in (READ_FILE, RUN_TESTS, REPLACE_IN_FILE, SUBMIT_FINDINGS)}
+
 
 def schemas():
     return [t.schema() for t in TOOLS.values()]

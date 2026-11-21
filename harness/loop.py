@@ -2,22 +2,26 @@ import json
 
 import openai
 
-from . import config, tools
+from . import config, integrity, tools
+from .artifacts import write_changes
+from .fixgrader import grade_fix
+from .grader import load_key
 from .llm import call_model
-from .prompts import NUDGE_BAD_CALL, NUDGE_NO_TOOL, SYSTEM_PROMPT, TASK
+from .prompts import NUDGE_BAD_CALL, NUDGE_BUDGET, NUDGE_NO_TOOL, SYSTEM_PROMPT, TASK
 from .runlog import RunLog
 from .tools.files import list_files
 from .workspace import create_run
 
 
 def run_agent(fixture="shop_v1", verbose=True):
-    """Run one review in a fresh workspace. Returns a summary dict (also saved to result.json)."""
+    """Run one fix attempt in a fresh workspace. Returns a summary dict (also saved to result.json)."""
     run_dir, ctx = create_run(fixture)
     log = RunLog(run_dir / "log.jsonl")
-    log.event("run_start", model=config.MODEL, fixture=fixture)
+    outside_before = integrity.snapshot()
+    log.event("run_start", model=config.MODEL, fixture=fixture, token_budget=config.TOKEN_BUDGET)
     say = print if verbose else (lambda *a, **k: None)
 
-    # the file map goes into the first message, so the agent does not spend a call on list_files
+    # the file map goes into the first message, so the agent does not spend a call on it
     task_message = f"{TASK}\n\nProject files:\n{list_files(ctx)}"
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -26,10 +30,25 @@ def run_agent(fixture="shop_v1", verbose=True):
     schemas = tools.schemas()
     tokens = steps = 0
     status = "step_limit"
+    budget_message = None
+    warned = False
 
     try:
         for step in range(1, config.MAX_STEPS + 1):
+            if tokens >= config.TOKEN_BUDGET:
+                status = "budget_exceeded"
+                budget_message = (f"Token budget exceeded: used {tokens} of {config.TOKEN_BUDGET}. "
+                                  "The run was stopped; partial results are kept.")
+                log.event("budget_exceeded", used=tokens, budget=config.TOKEN_BUDGET)
+                say(f"\n{budget_message}")
+                break
+            if not warned and tokens >= config.BUDGET_WARN_FRACTION * config.TOKEN_BUDGET:
+                warned = True
+                messages.append({"role": "user",
+                                 "content": NUDGE_BUDGET.format(used=tokens, budget=config.TOKEN_BUDGET)})
+                log.event("budget_warning", used=tokens, budget=config.TOKEN_BUDGET)
             steps = step
+
             try:
                 resp = call_model(messages, schemas)
             except openai.BadRequestError as e:
@@ -42,8 +61,11 @@ def run_agent(fixture="shop_v1", verbose=True):
             msg = resp.choices[0].message
             usage = resp.usage
             tokens += usage.total_tokens
+            details = getattr(usage, "prompt_tokens_details", None)
+            cached = getattr(details, "cached_tokens", 0) or 0  # Groq does not count these toward rate limits
             log.event("model_call", step=step, prompt_tokens=usage.prompt_tokens,
-                      completion_tokens=usage.completion_tokens, total_tokens=usage.total_tokens)
+                      completion_tokens=usage.completion_tokens, total_tokens=usage.total_tokens,
+                      cached_tokens=cached)
             say(f"\n[step {step}] this call: {usage.total_tokens} tokens | run total: {tokens}")
 
             if not msg.tool_calls:
@@ -71,7 +93,7 @@ def run_agent(fixture="shop_v1", verbose=True):
                     args = {}
                     output = "error: arguments were not valid JSON"
                 log.event("tool", step=step, name=tc.function.name, args=args, output=output)
-                say(f"  tool: {tc.function.name}({args}) -> {len(output)} chars")
+                say(f"  tool: {tc.function.name} -> {len(output)} chars")
                 messages.append({"role": "tool", "tool_call_id": tc.id, "content": output})
 
             if ctx.findings is not None:
@@ -81,15 +103,32 @@ def run_agent(fixture="shop_v1", verbose=True):
         status = "error"
         log.event("error", message=f"{type(e).__name__}: {e}")
 
+    # everything below runs for every run, including ones cut short: partial results are kept
+    changed = write_changes(fixture, ctx)
+    try:
+        fix = grade_fix(fixture, ctx.root, load_key(fixture))
+    except Exception as e:  # a broken fixture must not lose the run's record
+        log.event("grading_error", message=f"{type(e).__name__}: {e}")
+        fix = {"bugs_fixed": [], "bugs_not_fixed": [], "regressions": [], "suite_ran": False,
+               "tampered": False, "grading_error": f"{type(e).__name__}: {e}"}
+    if integrity.snapshot() != outside_before:
+        fix["tampered"] = True
+        fix["outside_files_changed"] = True
+
     result = {
         "run_id": run_dir.name,
         "status": status,
+        "budget_message": budget_message,
+        "token_budget": config.TOKEN_BUDGET,
         "steps": steps,
         "tokens": tokens,
         "findings": ctx.findings or [],
         "files_read": sorted(ctx.files_read),
         "tests_run": ctx.tests_run,
         "gate_rejections": ctx.gate_rejections,
+        "edits_made": ctx.edits_made,
+        "changed_files": changed,
+        "fix": fix,
     }
     (run_dir / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     log.event("run_end", **{k: v for k, v in result.items() if k != "findings"})

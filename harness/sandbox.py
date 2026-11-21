@@ -1,4 +1,7 @@
-"""Guardrails for filesystem access. Every tool goes through here."""
+"""Guardrails for filesystem access and subprocesses. Every tool goes through here."""
+import os
+
+_SECRET_WORDS = ("KEY", "TOKEN", "SECRET", "PASSWORD", "CREDENTIAL", "GROQ")
 
 
 def safe_path(root, rel):
@@ -21,9 +24,11 @@ def iter_py_files(root):
         if "__pycache__" not in p.parts:
             yield p
 
+
 def source_files(root):
     """Workspace-relative paths of the project's real source code: no tests, no empty files.
-    Computed from the workspace itself, never from the answer key."""
+    Computed from the workspace itself, never from the answer key. These are also the
+    only files the agent is allowed to edit."""
     out = []
     for p in iter_py_files(root):
         rel = relative(root, p)
@@ -31,3 +36,12 @@ def source_files(root):
             continue
         out.append(rel)
     return out
+
+
+def scrubbed_env():
+    """Environment for subprocesses that run model-written code: anything that looks like
+    a secret (including your Groq key) is removed."""
+    env = {k: v for k, v in os.environ.items() if not any(w in k.upper() for w in _SECRET_WORDS)}
+    env["COLUMNS"] = "200"  # keeps pytest's summary lines from being cut off
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    return env
