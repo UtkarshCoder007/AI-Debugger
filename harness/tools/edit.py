@@ -3,6 +3,7 @@ import re
 from .. import config
 from ..sandbox import relative, safe_path, source_files
 from .base import Tool
+from .files import numbered
 from .verify import run_pytest
 
 # Heuristic screen for code that reaches outside the project when the tests import it.
@@ -43,8 +44,10 @@ def replace_in_file(ctx, path, edits):
                     "(imports of os/sys/subprocess/network modules, open, eval, exec)")
         count = text.count(old)
         if count != 1:
-            return (f"error: edit {i}: 'old' matches {count} places in {rel}; "
-                    "it must match exactly once. Include more surrounding text.")
+            # include the file's current text so the retry needs no extra read
+            return (f"error: edit {i}: 'old' matches {count} places in {rel}; it must match exactly once, "
+                    "and must not include the line-number prefixes. Nothing was changed.\n"
+                    f"Current text of {rel}:\n{numbered(target)}")
         text = text.replace(old, new, 1)
 
     try:
@@ -57,14 +60,16 @@ def replace_in_file(ctx, path, edits):
     ctx.edits_made += len(edits)
     output, passed = run_pytest(ctx)  # verification loop: every edit is tested immediately
     status = "all visible tests pass" if passed else "some visible tests fail"
-    return f"Applied {len(edits)} edit(s) to {rel}. Automatic test run: {status}.\n{output}"
+    return (f"Applied {len(edits)} edit(s) to {rel}. Automatic test run: {status}.\n{output}\n"
+            f"Current text of {rel}:\n{numbered(target)}")
 
 
 REPLACE_IN_FILE = Tool(
     name="replace_in_file",
     description=(
         "Edit a source file you have already read. Each edit replaces the text 'old' with 'new'; "
-        "'old' must match exactly once. Tests run automatically afterwards."
+        "'old' must match exactly once. Tests run automatically afterwards, and the result shows "
+        "the file's current text."
     ),
     parameters={
         "type": "object",

@@ -26,6 +26,8 @@ def describe(event):
         return "NOTE" if not out.startswith("error") else "NOTE-REJECTED"
     if name == "submit_findings":
         return "SUBMIT-OK" if out.startswith("Findings recorded") else "SUBMIT-REFUSED"
+    if name in ("apply_edits", "replace_in_file"):
+        return "EDIT-REJECTED" if out.startswith("error") else "EDIT-OK"
     return name
 
 
@@ -42,6 +44,9 @@ def main():
         print(f"run {i}: {row['status']} | {row['steps']} steps | {row['tokens']} tokens | re-reads: {rereads} | plain-text nudges: {nudges}")
         print("   file reads:", ", ".join(f"{short(p)} x{c}" for p, c in reads.items()) or "none")
         print("   sequence:  ", " > ".join(describe(e) for e in tools))
+        for e in tools:
+            if e["name"] in ("apply_edits", "replace_in_file") and e["output"].startswith("error"):
+                print("   rejected:", e["output"][:200].replace("\n", " "))
         print("   prompt tokens per call:", " ".join(str(c["prompt_tokens"]) for c in calls))
         print("   stubs shown per call:  ", " ".join(str(c.get("pruned_results", 0)) for c in calls))
         for n in row.get("notes", []):

@@ -45,3 +45,12 @@ def scrubbed_env():
     env["COLUMNS"] = "200"  # keeps pytest's summary lines from being cut off
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     return env
+
+def test_files(root):
+    """Workspace-relative paths of the project's test files (read-only for the agent)."""
+    out = []
+    for p in iter_py_files(root):
+        rel = relative(root, p)
+        if "tests" in rel.split("/")[:-1] and p.read_text(encoding="utf-8").strip():
+            out.append(rel)
+    return out

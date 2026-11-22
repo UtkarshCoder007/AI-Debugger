@@ -1,0 +1,241 @@
+{
+  "summary": {
+    "label": "v8-multi-edit",
+    "fixture": "shop_v1",
+    "model": "openai/gpt-oss-120b",
+    "rules": {
+      "require_full_coverage": true,
+      "token_budget": 25000,
+      "reasoning_effort": "medium"
+    },
+    "runs": 3,
+    "errored_runs": 0,
+    "statuses": {
+      "submitted": 2,
+      "budget_exceeded": 1
+    },
+    "mean_bugs_found": 2.67,
+    "mean_bugs_fixed": 3.67,
+    "runs_fully_fixed": 0,
+    "total_regressions": 0,
+    "tampered_runs": 0,
+    "mean_false_positives": 0,
+    "mean_tokens": 26859,
+    "mean_steps": 10,
+    "mean_edits": 4.3,
+    "pct_all_files_read": 100,
+    "mean_gate_rejections": 0,
+    "per_bug_found": {
+      "remove-stock-boundary": 2,
+      "bulk-tier-order": 2,
+      "order-not-atomic": 1,
+      "paginate-off-by-one": 2,
+      "average-empty-list": 1
+    },
+    "per_bug_fixed": {
+      "remove-stock-boundary": 3,
+      "bulk-tier-order": 3,
+      "order-not-atomic": 1,
+      "paginate-off-by-one": 3,
+      "average-empty-list": 1
+    }
+  },
+  "runs": [
+    {
+      "run_id": "20261121-234430-0b77",
+      "status": "submitted",
+      "budget_message": null,
+      "token_budget": 25000,
+      "steps": 10,
+      "tokens": 24523,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock raised OutOfStockError when qty equals available stock; condition should check qty > available, not <=."
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 2,
+          "description": "bulk_discount_rate applied discounts in wrong order; >10 checked before >50, causing 20% never reached."
+        },
+        {
+          "file": "shop/report.py",
+          "line": 3,
+          "description": "paginate calculated start index incorrectly (page * page_size) leading to off-by-one pages; should use (page-1)*page_size."
+        },
+        {
+          "file": "shop/report.py",
+          "line": 7,
+          "description": "average_order_value divided by zero when totals list empty; should handle empty list and return 0.0."
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py",
+        "tests/test_shop.py"
+      ],
+      "tests_run": 1,
+      "gate_rejections": 0,
+      "edits_made": 4,
+      "changed_files": [
+        "shop/inventory.py",
+        "shop/pricing.py",
+        "shop/report.py"
+      ],
+      "fix": {
+        "bugs_fixed": [
+          "average-empty-list",
+          "bulk-tier-order",
+          "paginate-off-by-one",
+          "remove-stock-boundary"
+        ],
+        "bugs_not_fixed": [
+          "order-not-atomic"
+        ],
+        "regressions": [],
+        "suite_ran": true,
+        "tampered": false
+      },
+      "found": [
+        "average-empty-list",
+        "bulk-tier-order",
+        "paginate-off-by-one",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "order-not-atomic"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "fixed_count": 4,
+      "all_files_read": true
+    },
+    {
+      "run_id": "20261121-234800-458c",
+      "status": "submitted",
+      "budget_message": null,
+      "token_budget": 25000,
+      "steps": 10,
+      "tokens": 28545,
+      "findings": [
+        {
+          "file": "shop/inventory.py",
+          "line": 24,
+          "description": "remove_stock raised OutOfStockError when removing the exact remaining quantity due to using <= instead of <, preventing valid stock depletion."
+        },
+        {
+          "file": "shop/pricing.py",
+          "line": 2,
+          "description": "bulk_discount_rate applied discounts in the wrong order: qty > 10 condition prevented the higher 20% discount for qty > 50."
+        },
+        {
+          "file": "shop/report.py",
+          "line": 3,
+          "description": "paginate calculated start index as page * page_size instead of (page-1)*page_size, causing off\u2011by\u2011one errors and missing first page items."
+        },
+        {
+          "file": "shop/orders.py",
+          "line": 4,
+          "description": "place_order removed stock item\u2011by\u2011item without pre\u2011checking availability, violating the all\u2011or\u2011nothing contract and potentially leaving inventory partially updated on failure."
+        }
+      ],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py",
+        "tests/test_shop.py"
+      ],
+      "tests_run": 1,
+      "gate_rejections": 0,
+      "edits_made": 5,
+      "changed_files": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py"
+      ],
+      "fix": {
+        "bugs_fixed": [
+          "bulk-tier-order",
+          "order-not-atomic",
+          "paginate-off-by-one",
+          "remove-stock-boundary"
+        ],
+        "bugs_not_fixed": [
+          "average-empty-list"
+        ],
+        "regressions": [],
+        "suite_ran": true,
+        "tampered": false
+      },
+      "found": [
+        "bulk-tier-order",
+        "order-not-atomic",
+        "paginate-off-by-one",
+        "remove-stock-boundary"
+      ],
+      "missed": [
+        "average-empty-list"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "fixed_count": 4,
+      "all_files_read": true
+    },
+    {
+      "run_id": "20261121-235138-377b",
+      "status": "budget_exceeded",
+      "budget_message": "Token budget exceeded: used 27508 of 25000. The run was stopped; partial results are kept.",
+      "token_budget": 25000,
+      "steps": 10,
+      "tokens": 27508,
+      "findings": [],
+      "files_read": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py",
+        "tests/test_shop.py"
+      ],
+      "tests_run": 1,
+      "gate_rejections": 0,
+      "edits_made": 4,
+      "changed_files": [
+        "shop/inventory.py",
+        "shop/orders.py",
+        "shop/pricing.py",
+        "shop/report.py"
+      ],
+      "fix": {
+        "bugs_fixed": [
+          "bulk-tier-order",
+          "paginate-off-by-one",
+          "remove-stock-boundary"
+        ],
+        "bugs_not_fixed": [
+          "average-empty-list",
+          "order-not-atomic"
+        ],
+        "regressions": [],
+        "suite_ran": true,
+        "tampered": false
+      },
+      "found": [],
+      "missed": [
+        "average-empty-list",
+        "bulk-tier-order",
+        "order-not-atomic",
+        "paginate-off-by-one",
+        "remove-stock-boundary"
+      ],
+      "false_positives": 0,
+      "duplicates": 0,
+      "fixed_count": 3,
+      "all_files_read": true
+    }
+  ]
+}

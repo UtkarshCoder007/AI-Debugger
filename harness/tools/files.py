@@ -1,8 +1,17 @@
 import re
 
 from ..config import MAX_READ_LINES, PRELOAD_MAX_CHARS
-from ..sandbox import iter_py_files, relative, safe_path, source_files
+from ..sandbox import iter_py_files, relative, safe_path, source_files, test_files
 from .base import Tool
+
+
+def numbered(path, limit=MAX_READ_LINES):
+    """A file's current text with line numbers (first `limit` lines)."""
+    lines = path.read_text(encoding="utf-8").splitlines()
+    body = "\n".join(f"{i}: {line}" for i, line in enumerate(lines[:limit], 1))
+    if len(lines) > limit:
+        body += f"\n[showing the first {limit} of {len(lines)} lines]"
+    return body
 
 
 def list_files(ctx):
@@ -17,18 +26,26 @@ def list_files(ctx):
     return "\n".join(out)
 
 
-def preload_sources(ctx):
-    """Full text of every source file with line numbers, or None if the project is too big.
-    Files included this way count as read: the agent has seen every line of them."""
-    texts = {rel: (ctx.root / rel).read_text(encoding="utf-8") for rel in source_files(ctx.root)}
-    if sum(len(t) for t in texts.values()) > PRELOAD_MAX_CHARS:
+def _block(rel, text):
+    lines = text.splitlines()
+    body = "\n".join(f"{i}: {line}" for i, line in enumerate(lines, 1))
+    return f"=== {rel} ({len(lines)} lines) ===\n{body}"
+
+
+def preload_project(ctx):
+    """The whole project as first-message text, or None if it is too big.
+    Source files included this way count as read: the agent has seen every line."""
+    sources = {rel: (ctx.root / rel).read_text(encoding="utf-8") for rel in source_files(ctx.root)}
+    tests = {rel: (ctx.root / rel).read_text(encoding="utf-8") for rel in test_files(ctx.root)}
+    if sum(len(t) for t in sources.values()) + sum(len(t) for t in tests.values()) > PRELOAD_MAX_CHARS:
         return None
-    parts = []
-    for rel, text in texts.items():
-        lines = text.splitlines()
-        body = "\n".join(f"{i}: {line}" for i, line in enumerate(lines, 1))
-        parts.append(f"=== {rel} ({len(lines)} lines) ===\n{body}")
+    parts = ["SOURCE FILES (you may edit these):"]
+    for rel, text in sources.items():
+        parts.append(_block(rel, text))
         ctx.files_read.add(rel)
+    if tests:
+        parts.append("TESTS (read-only: you cannot edit these):")
+        parts += [_block(rel, text) for rel, text in tests.items()]
     return "\n\n".join(parts)
 
 

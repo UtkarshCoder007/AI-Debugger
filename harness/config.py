@@ -30,7 +30,7 @@ MAX_STEPS = 20
 # a file list and must use read_file. Editable in .env.
 PRELOAD_MAX_CHARS = int(os.environ.get("PRELOAD_MAX_CHARS", "12000"))
 MAX_READ_LINES = 150
-MAX_OUTPUT_CHARS = 3000
+MAX_OUTPUT_CHARS = 4000
 
 # Limits on the edit tool
 MAX_EDITS_PER_CALL = 10

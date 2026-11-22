@@ -9,7 +9,7 @@ from .grader import load_key
 from .llm import call_model
 from .prompts import NUDGE_BAD_CALL, NUDGE_BUDGET, NUDGE_NO_TOOL, SYSTEM_PROMPT, TASK
 from .runlog import RunLog
-from .tools.files import list_files, preload_sources
+from .tools.files import list_files, preload_project
 from .workspace import create_run
 
 
@@ -22,9 +22,9 @@ def run_agent(fixture="shop_v1", verbose=True):
     say = print if verbose else (lambda *a, **k: None)
 
     # small projects go into the first message in full, so the agent skips the reading calls
-    sources = preload_sources(ctx)
-    if sources:
-        task_message = f"{TASK}\n\nAll source files, with line numbers:\n\n{sources}"
+    preloaded = preload_project(ctx)
+    if preloaded:
+        task_message = f"{TASK}\n\nThe whole project, with line numbers:\n\n{preloaded}"
     else:
         task_message = f"{TASK}\n\nProject files (open them with read_file):\n{list_files(ctx)}"
     messages = [
